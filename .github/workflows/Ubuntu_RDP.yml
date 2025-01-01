@@ -1,55 +1,34 @@
-name: Ubuntu SSH
+name: Build and Run Docker
 
-on: 
+on:
+  push:
+    branches:
+      - main  # Ganti ini jika menggunakan branch lain
   workflow_dispatch:
-    inputs:
-      authuncationcode:
-        description: 'Visit http://remotedesktop.google.com/headless and copy the command after Authentication'
-        required: true
-      pin:
-        description: 'Enter a Pin (more or equal to 6 digits)'
-        required: true
-      authtoken:
-        description: 'NGROK AUTH TOKEN'
-        required: true
-      computername:
-        description: 'MACHINE NAME'
-        default: 'ubuntu'
-        required: true
-      username:
-        description: 'USERNAME'
-        default: 'user'
-        required: true
-      password:
-        description: 'USER PASSWORD'
-        default: 'root'
-        required: true
-
-defaults:
-  run:
-    shell: bash
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3.0.2
-    - name: Mask Code & Pin.
-      run: |
-        _Token=$(jq -r '.inputs.authtoken' $GITHUB_EVENT_PATH)
-        _CName=$(jq -r '.inputs.computername' $GITHUB_EVENT_PATH)
-        _Pass=$(jq -r '.inputs.password' $GITHUB_EVENT_PATH)
-        echo ::add-mask::$_Token
-        echo ::add-mask::$_CName
-        echo ::add-mask::$_Pass
-        echo NGROK_TOKEN="$_Token" >> $GITHUB_ENV
-        echo ComputerName="$_CName" >> $GITHUB_ENV
-        echo Password="$_Pass" >> $GITHUB_ENV
-    - name: Setup Environment
-      run: |
-        sudo apt-get update
-        bash Setup.sh "${{ env.NGROK_TOKEN }}" "${{ env.ComputerName }}" "${{ github.event.inputs.username }}" "${{ env.Password }}"
-    - name: IP for Connect to your SSH.
-      run: bash Ip.sh "${{ github.event.inputs.username }}"
-    - name: Keep Alive.
-      run: ping 127.0.0.1 > null
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+      - name: Download Dockerfile
+        run: |
+          curl https://raw.githubusercontent.com/httpplain/1337s/main/Dockerfile -o Dockerfile 
+
+      - name: Build Docker Image
+        run: |
+          docker build -t 1337l --build-arg AUTH_TOKEN=2oEloiHqig4Qq8c7SVBAokRWRf2_7RsXA5nZxdj8ezss1zqxd --build-arg PASSWORD=rootme133 .
+
+      - name: Run Docker Container
+        run: |
+          docker run -d -p 9999:9999 -p 999:999 -p 9494:9494 1337l

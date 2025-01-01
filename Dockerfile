@@ -14,7 +14,7 @@ RUN curl https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-stable-linux-amd64.zip -o ng
     && unzip ngrok.zip \
     && rm /ngrok.zip \
     && mkdir /run/sshd \
-    && echo "/ngrok tcp --authtoken ${AUTH_TOKEN} 22 &" >> /ss.sh \
+    && echo "/ngrok tcp --authtoken ${AUTH_TOKEN} 22 &>/dev/null &" >> /ss.sh
     && echo "sleep 5" >> /ss.sh \
     && echo "curl -s http://localhost:4040/api/tunnels | python3 -c \"import sys, json; print(\\\"SSH Info:\\\n\\\",\\\"ssh\\\",\\\"root@\\\"+json.load(sys.stdin)['tunnels'][0]['public_url'][6:].replace(':', ' -p '),\\\"\\\nROOT Password:${PASSWORD}\\\")\" || echo \"\nError：AUTH_TOKEN，Reset ngrok token & try\n\"" >> /ss.sh \
     && echo '/usr/sbin/sshd -D' >> /ss.sh \
